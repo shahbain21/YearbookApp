@@ -16,7 +16,7 @@ struct YearbookApp: App {
             if showSplash {
                 SplashView(onFinished: { showSplash = false })
             } else {
-                MemoriesView() 
+                RootTabView()
             }
         }
     }

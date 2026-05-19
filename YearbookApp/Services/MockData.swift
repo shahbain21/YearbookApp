@@ -24,6 +24,21 @@ enum MockData {
              date: makeDate(2026, 6, 1),
              likeCount: 7)
     ]
+    
+    static let events: [Event] = [
+            Event(id: "e1",
+                  title: "AM Cohort Chicago Trip",
+                  date: makeDate(2026, 6, 6),
+                  details: "Cohort trip to Chicago. Meet at the academy at 8am."),
+            Event(id: "e2",
+                  title: "Final Project Showcase",
+                  date: makeDate(2026, 6, 1),
+                  details: "Present your capstone apps to mentors."),
+            Event(id: "e3",
+                  title: "Demo Day",
+                  date: makeDate(2026, 6, 5),
+                  details: "Open house — show your work to the community.")
+        ]
 
     /// Helper to build a date without DateComponents noise at call sites.
     static func makeDate(_ year: Int, _ month: Int, _ day: Int) -> Date {
