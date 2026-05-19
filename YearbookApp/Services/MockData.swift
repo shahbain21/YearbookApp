@@ -39,8 +39,15 @@ enum MockData {
                   date: makeDate(2026, 6, 5),
                   details: "Open house — show your work to the community.")
         ]
+    
+    static let users: [User] = [
+            User(id: "u1", name: "Irmani Chears",   photoName: "member_irmani"),
+            User(id: "u2", name: "Jazmine Martin",  photoName: "member_jazmine"),
+            User(id: "u3", name: "Jahnell Roberson", photoName: "member_jahnell"),
+            User(id: "u4", name: "Tracie Webster",  photoName: "member_tracie")
+        ]
 
-    /// Helper to build a date without DateComponents noise at call sites.
+    // Helper to build a date without DateComponents noise at call sites.
     static func makeDate(_ year: Int, _ month: Int, _ day: Int) -> Date {
         var c = DateComponents()
         c.year = year; c.month = month; c.day = day
