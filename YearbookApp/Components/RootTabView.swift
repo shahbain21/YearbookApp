@@ -14,13 +14,13 @@ struct RootTabView: View {
     var body: some View {
         TabView {
             MemoriesView()
-                .tabItem { Label("Memories", systemImage: "square.on.square") }
+                .tabItem { Label("Memories", systemImage: "square.on.square.badge.person.crop.fill") }
 
             EventsView()
                 .tabItem { Label("Events", systemImage: "calendar") }
 
             CohortView()
-                .tabItem { Label("Cohort", systemImage: "person.3") }
+                .tabItem { Label("Cohort", systemImage: "circle.hexagonpath") }
 
             ProfileView()
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }

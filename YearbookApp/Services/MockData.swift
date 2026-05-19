@@ -44,8 +44,15 @@ enum MockData {
             User(id: "u1", name: "Irmani Chears",   photoName: "member_irmani"),
             User(id: "u2", name: "Jazmine Martin",  photoName: "member_jazmine"),
             User(id: "u3", name: "Jahnell Roberson", photoName: "member_jahnell"),
-            User(id: "u4", name: "Tracie Webster",  photoName: "member_tracie")
+            User(id: "u4", name: "Tracie Webster",  photoName: "member_tracie",
+                 quote: "If you are not living on the edge, you are taking up too much space.",
+                 role: "Project Manager",
+                 linkedIn: "tracie-webster",
+                 instagram: "@traciew")
         ]
+
+        /// The signed-in user. Hard-coded for now; set on login later.
+        static let currentUser = users[3]   // Tracie
 
     // Helper to build a date without DateComponents noise at call sites.
     static func makeDate(_ year: Int, _ month: Int, _ day: Int) -> Date {
