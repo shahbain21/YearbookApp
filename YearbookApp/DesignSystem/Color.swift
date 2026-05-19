@@ -14,6 +14,7 @@ enum YBColor {
     static let icyAqua    = Color(hex: 0xBFF3F5)   // Icy Aqua
     static let deepPurple = Color(hex: 0x651062)   // Deep Purple
     static let white      = Color(hex: 0xFFFFFF)   // White
+    static let heart      = Color(hex: 0xB23A3F)
 
     static let paper   = white
     static let ink     = black

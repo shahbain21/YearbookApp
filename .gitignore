@@ -1,7 +1,17 @@
+# Xcode
 build/
 DerivedData/
 *.xcuserstate
 xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# macOS
 .DS_Store
+
+# Swift Package Manager
 .swiftpm/
 .build/
+
+# Firebase — contains project keys, do not commit
+GoogleService-Info.plist

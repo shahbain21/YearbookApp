@@ -6,13 +6,33 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		819F6DF02FBC9B30002D89BC /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 819F6DEF2FBC9B30002D89BC /* FirebaseAuth */; };
+		819F6DF22FBC9B30002D89BC /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 819F6DF12FBC9B30002D89BC /* FirebaseFirestore */; };
+		819F6DFC2FBCA0E7002D89BC /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 819F6DFB2FBCA0E7002D89BC /* GoogleSignIn */; };
+		819F6DFE2FBCA0E7002D89BC /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 819F6DFD2FBCA0E7002D89BC /* GoogleSignInSwift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		819F6DA02FBA7136002D89BC /* YearbookApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YearbookApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		819F6E042FBCA1EE002D89BC /* Exceptions for "YearbookApp" folder in "YearbookApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 819F6D9F2FBA7136002D89BC /* YearbookApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		819F6DA22FBA7136002D89BC /* YearbookApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				819F6E042FBCA1EE002D89BC /* Exceptions for "YearbookApp" folder in "YearbookApp" target */,
+			);
 			path = YearbookApp;
 			sourceTree = "<group>";
 		};
@@ -23,6 +43,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				819F6DF02FBC9B30002D89BC /* FirebaseAuth in Frameworks */,
+				819F6DF22FBC9B30002D89BC /* FirebaseFirestore in Frameworks */,
+				819F6DFC2FBCA0E7002D89BC /* GoogleSignIn in Frameworks */,
+				819F6DFE2FBCA0E7002D89BC /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +89,10 @@
 			);
 			name = YearbookApp;
 			packageProductDependencies = (
+				819F6DEF2FBC9B30002D89BC /* FirebaseAuth */,
+				819F6DF12FBC9B30002D89BC /* FirebaseFirestore */,
+				819F6DFB2FBCA0E7002D89BC /* GoogleSignIn */,
+				819F6DFD2FBCA0E7002D89BC /* GoogleSignInSwift */,
 			);
 			productName = YearbookApp;
 			productReference = 819F6DA02FBA7136002D89BC /* YearbookApp.app */;
@@ -94,6 +122,10 @@
 			);
 			mainGroup = 819F6D972FBA7136002D89BC;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				819F6DEE2FBC9B30002D89BC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				819F6DFA2FBCA0E7002D89BC /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 819F6DA12FBA7136002D89BC /* Products */;
 			projectDirPath = "";
@@ -256,6 +288,7 @@
 				DEVELOPMENT_TEAM = 7C7WV8TT97;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = YearbookApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -288,6 +321,7 @@
 				DEVELOPMENT_TEAM = 7C7WV8TT97;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = YearbookApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -332,6 +366,48 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		819F6DEE2FBC9B30002D89BC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.13.0;
+			};
+		};
+		819F6DFA2FBCA0E7002D89BC /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		819F6DEF2FBC9B30002D89BC /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 819F6DEE2FBC9B30002D89BC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		819F6DF12FBC9B30002D89BC /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 819F6DEE2FBC9B30002D89BC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		819F6DFB2FBCA0E7002D89BC /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 819F6DFA2FBCA0E7002D89BC /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		819F6DFD2FBCA0E7002D89BC /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 819F6DFA2FBCA0E7002D89BC /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 819F6D982FBA7136002D89BC /* Project object */;
 }

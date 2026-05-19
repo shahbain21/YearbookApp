@@ -57,8 +57,8 @@ struct ProfileView: View {
             }
         }
         .sheet(isPresented: $showSettings) {
-            Text("Settings — coming soon")   // real screen is the next step
-        }
+                    SettingsView()
+                }
     }
 
     @ViewBuilder
