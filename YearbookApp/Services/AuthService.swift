@@ -8,12 +8,19 @@ import FirebaseAuth
 @MainActor
 final class AuthService: ObservableObject {
 
+    // MARK: - Published state
+
+    /// The raw Firebase Auth user. Nil = signed out.
     @Published var user: FirebaseAuth.User?
-    @Published var errorMessage: String?
 
     /// The signed-in user's Firestore profile. Populated whenever
     /// Firebase Auth state becomes signed-in; nil when signed out.
     @Published var currentUser: User?
+
+    /// Surfaces the most recent auth error to the UI.
+    @Published var errorMessage: String?
+
+    // MARK: - Dependencies
 
     private var listenerHandle: AuthStateDidChangeListenerHandle?
     private let userService = UserService()
@@ -21,6 +28,8 @@ final class AuthService: ObservableObject {
     /// Email domains allowed to use the app. Add more here as cohorts
     /// expand — it's an array on purpose.
     private let allowedDomains = ["msu.idserve.net"]
+
+    // MARK: - Lifecycle
 
     init() {
         listenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, firebaseUser in
@@ -47,11 +56,11 @@ final class AuthService: ObservableObject {
         return allowedDomains.contains(String(domain))
     }
 
-    // MARK: - Email + password
+    // MARK: - Sign up
 
-    /// Simple sign-up: Auth account + a minimal User document. The
-    /// User starts with just id + email; name and other fields are
-    /// filled in via Settings (or by the real onboarding flow later).
+    /// Simple sign-up: Auth account + a minimal User document. Used by
+    /// the current SignInView. When the real onboarding flow is wired,
+    /// this can be removed and `register(...)` used instead.
     func signUp(email: String, password: String) async {
         errorMessage = nil
         guard isAllowed(email: email) else {
@@ -59,14 +68,10 @@ final class AuthService: ObservableObject {
             return
         }
         do {
-            // 1. Create the Auth account.
             let result = try await Auth.auth().createUser(
                 withEmail: email, password: password)
-
-            // 2. Write a minimal User document, keyed by the uid.
             let newUser = User(id: result.user.uid, name: "", email: email)
             try await userService.saveUser(newUser)
-
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -74,7 +79,9 @@ final class AuthService: ObservableObject {
 
     /// Full registration: creates the Auth account AND writes the
     /// matching User profile to Firestore. Designed for the onboarding
-    /// flow once the design team finishes it.
+    /// flow once the design team finishes it. `hasCompletedOnboarding`
+    /// stays false on the User; onboarding flips it via
+    /// `markOnboardingComplete()`.
     func register(email: String, password: String,
                   name: String, cohort: String) async {
         errorMessage = nil
@@ -97,6 +104,8 @@ final class AuthService: ObservableObject {
         }
     }
 
+    // MARK: - Sign in / out
+
     func signIn(email: String, password: String) async {
         errorMessage = nil
         guard isAllowed(email: email) else {
@@ -110,8 +119,6 @@ final class AuthService: ObservableObject {
         }
     }
 
-    // MARK: - Sign out
-
     func signOut() {
         do {
             try Auth.auth().signOut()
@@ -120,12 +127,29 @@ final class AuthService: ObservableObject {
         }
     }
 
-    // MARK: - Profile reload
+    // MARK: - Profile management
 
     /// Reloads the current user's profile from Firestore. Called by
     /// Settings after a successful field edit so the UI reflects it.
     func reloadCurrentUser() async {
         guard let uid = user?.uid else { return }
         currentUser = try? await userService.fetchUser(id: uid)
+    }
+
+    /// Called by the onboarding flow when the user finishes or skips.
+    /// Flips hasCompletedOnboarding to true so the app routes them
+    /// from onboarding into the main tabs, then refreshes currentUser.
+    func markOnboardingComplete() async {
+        guard let uid = user?.uid else { return }
+        do {
+            try await userService.updateField(
+                userID: uid,
+                keyPath: \User.hasCompletedOnboarding,
+                value: true
+            )
+            await reloadCurrentUser()
+        } catch {
+            errorMessage = "Couldn't save your progress."
+        }
     }
 }

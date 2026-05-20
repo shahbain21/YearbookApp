@@ -12,6 +12,8 @@ struct SettingsView: View {
     private var user: User {
         auth.currentUser ?? User(id: "", name: "", email: "")
     }
+    
+    
 
     var body: some View {
         NavigationStack {
@@ -36,6 +38,8 @@ struct SettingsView: View {
                     VStack(spacing: 0) {
                         editRow("Change Name",      keyPath: \.name,
                                 value: user.name)
+                        dateRow("Change Birthday", keyPath: \.birthday,
+                                                       value: user.birthday)
                         editRow("Change Quote",     keyPath: \.quote,
                                 value: user.quote)
                         editRow("Change Domain",    keyPath: \.domain,
@@ -117,6 +121,33 @@ struct SettingsView: View {
         }
         Divider()
     }
+    
+    /// Builds one row that pushes the date editor.
+        @ViewBuilder
+        private func dateRow(_ title: String,
+                            keyPath: WritableKeyPath<User, Date?>,
+                            value: Date?) -> some View {
+            NavigationLink {
+                EditDateView(title: title, keyPath: keyPath, initialValue: value)
+            } label: {
+                HStack {
+                    Text(title)
+                        .font(YBFont.body)
+                        .foregroundColor(.primary)
+                    Spacer()
+                    if let value {
+                        Text(value.formatted(.dateTime.month().day().year()))
+                            .font(YBFont.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, YBSpace.md)
+                .contentShape(Rectangle())
+            }
+            Divider()
+        }
 }
 
 #Preview {

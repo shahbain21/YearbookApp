@@ -21,4 +21,10 @@ struct User: Identifiable, Codable {
     var instagram: String = ""
     var domain: String = ""
     var cohort: String = ""
+    var birthday: Date?
+
+    /// True once the user has completed (or explicitly skipped) the
+    /// onboarding profile-completion flow. Defaults to false so
+    /// newly-registered users land in onboarding.
+    var hasCompletedOnboarding: Bool = false
 }
