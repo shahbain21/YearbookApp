@@ -1,10 +1,15 @@
 import SwiftUI
 
 /// The Profile screen — shows the signed-in user. The gear button
-/// opens Settings as a sheet (Settings is modal, not a tab).
+/// opens Settings as a sheet.
 struct ProfileView: View {
-    private let user = MockData.currentUser
+    @EnvironmentObject private var auth: AuthService
     @State private var showSettings = false
+
+    /// The signed-in user, or a blank placeholder while loading.
+    private var user: User {
+        auth.currentUser ?? User(id: "", name: "", email: "")
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -23,7 +28,7 @@ struct ProfileView: View {
                             .background(YBColor.white)
                             .shadow(color: .black.opacity(0.15), radius: 5, y: 3)
 
-                        Text(user.name)
+                        Text(user.name.isEmpty ? user.email : user.name)
                             .font(YBFont.heading)
                             .foregroundColor(YBColor.ink)
 
@@ -57,19 +62,19 @@ struct ProfileView: View {
             }
         }
         .sheet(isPresented: $showSettings) {
-                    SettingsView()
-                }
+            SettingsView()
+        }
     }
 
     @ViewBuilder
     private var socialLinks: some View {
         HStack(spacing: YBSpace.lg) {
-            if user.linkedIn != nil {
+            if !user.linkedIn.isEmpty {
                 Image(systemName: "link")
                     .font(.title2)
                     .foregroundColor(YBColor.forest)
             }
-            if user.instagram != nil {
+            if !user.instagram.isEmpty {
                 Image(systemName: "camera")
                     .font(.title2)
                     .foregroundColor(YBColor.forest)
@@ -95,5 +100,5 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()
+    ProfileView().environmentObject(AuthService())
 }

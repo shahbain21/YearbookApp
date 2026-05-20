@@ -34,4 +34,17 @@ final class UserService {
         let snapshot = try await usersCollection.getDocuments()
         return try snapshot.documents.map { try $0.data(as: User.self) }
     }
+    
+    // Update a single field on a User. The keyPath is a writable  keyPath on User, like \User.name or \User.quote.
+        func updateField<Value: Codable>(
+            userID: String,
+            keyPath: WritableKeyPath<User, Value>,
+            value: Value
+        ) async throws {
+            guard var user = try await fetchUser(id: userID) else {
+                throw NSError(domain: "UserService", code: 404)
+            }
+            user[keyPath: keyPath] = value
+            try await saveUser(user)
+        }
 }

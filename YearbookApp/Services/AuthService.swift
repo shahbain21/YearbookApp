@@ -3,12 +3,17 @@ import Combine
 import FirebaseAuth
 
 /// Handles authentication. Email/password via Firebase Auth, gated to
-/// academy email domains only.
+/// academy email domains only. Also tracks the signed-in user's
+/// Firestore profile so the rest of the app can read it.
 @MainActor
 final class AuthService: ObservableObject {
 
     @Published var user: FirebaseAuth.User?
     @Published var errorMessage: String?
+
+    /// The signed-in user's Firestore profile. Populated whenever
+    /// Firebase Auth state becomes signed-in; nil when signed out.
+    @Published var currentUser: User?
 
     private var listenerHandle: AuthStateDidChangeListenerHandle?
     private let userService = UserService()
@@ -18,8 +23,17 @@ final class AuthService: ObservableObject {
     private let allowedDomains = ["msu.idserve.net"]
 
     init() {
-        listenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            self?.user = user
+        listenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, firebaseUser in
+            self?.user = firebaseUser
+            // Load (or clear) the Firestore profile to match.
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if let firebaseUser {
+                    self.currentUser = try? await self.userService.fetchUser(id: firebaseUser.uid)
+                } else {
+                    self.currentUser = nil
+                }
+            }
         }
     }
 
@@ -35,8 +49,9 @@ final class AuthService: ObservableObject {
 
     // MARK: - Email + password
 
-    /// Simple sign-up: Auth account only. Used by the current
-    /// SignInView until the real onboarding flow replaces it.
+    /// Simple sign-up: Auth account + a minimal User document. The
+    /// User starts with just id + email; name and other fields are
+    /// filled in via Settings (or by the real onboarding flow later).
     func signUp(email: String, password: String) async {
         errorMessage = nil
         guard isAllowed(email: email) else {
@@ -44,7 +59,14 @@ final class AuthService: ObservableObject {
             return
         }
         do {
-            try await Auth.auth().createUser(withEmail: email, password: password)
+            // 1. Create the Auth account.
+            let result = try await Auth.auth().createUser(
+                withEmail: email, password: password)
+
+            // 2. Write a minimal User document, keyed by the uid.
+            let newUser = User(id: result.user.uid, name: "", email: email)
+            try await userService.saveUser(newUser)
+
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -61,11 +83,8 @@ final class AuthService: ObservableObject {
             return
         }
         do {
-            // 1. Create the Auth account.
             let result = try await Auth.auth().createUser(
                 withEmail: email, password: password)
-
-            // 2. Write the matching User profile, keyed by uid.
             let newUser = User(
                 id: result.user.uid,
                 name: name,
@@ -73,7 +92,6 @@ final class AuthService: ObservableObject {
                 cohort: cohort
             )
             try await userService.saveUser(newUser)
-
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -100,5 +118,14 @@ final class AuthService: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    // MARK: - Profile reload
+
+    /// Reloads the current user's profile from Firestore. Called by
+    /// Settings after a successful field edit so the UI reflects it.
+    func reloadCurrentUser() async {
+        guard let uid = user?.uid else { return }
+        currentUser = try? await userService.fetchUser(id: uid)
     }
 }

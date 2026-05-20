@@ -1,24 +1,17 @@
-//
-//  SettingsView.swift
-//  YearbookApp
-//
-//  Created by Mohamed Shahbain on 5/18/26.
-//
-
-
 import SwiftUI
 
-/// Settings — presented as a sheet from Profile. The hi-fi's X-to-close
-/// confirms it's modal, not a tab.
+/// Settings — presented as a sheet from Profile. Uses semantic
+/// system colors so it adapts to light and dark mode like the
+/// native sheets it sits alongside.
 struct SettingsView: View {
     @EnvironmentObject private var auth: AuthService
     @Environment(\.dismiss) private var dismiss
     @State private var notificationsOn = true
 
-    private let user = MockData.currentUser
-
-    private let changeRows = ["Change Name", "Change Quote", "Change Birthday",
-                              "Change Domain", "Change LinkedIn", "Change Instagram"]
+    /// The signed-in user, or a blank placeholder while loading.
+    private var user: User {
+        auth.currentUser ?? User(id: "", name: "", email: "")
+    }
 
     var body: some View {
         NavigationStack {
@@ -33,28 +26,24 @@ struct SettingsView: View {
                         Button("Upload Photo") { /* TODO: photo picker */ }
                             .font(YBFont.caption)
                             .foregroundColor(YBColor.forest)
-                        Text(user.name)
+                        Text(user.name.isEmpty ? user.email : user.name)
                             .font(YBFont.label)
-                            .foregroundColor(YBColor.ink)
+                            .foregroundColor(.primary)
                     }
                     .padding(.top, YBSpace.md)
 
                     // Change rows
                     VStack(spacing: 0) {
-                        ForEach(changeRows, id: \.self) { row in
-                            Button { /* TODO: edit screen */ } label: {
-                                HStack {
-                                    Text(row)
-                                        .font(YBFont.body)
-                                        .foregroundColor(YBColor.ink)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(YBColor.inkSoft)
-                                }
-                                .padding(.vertical, YBSpace.md)
-                            }
-                            Divider()
-                        }
+                        editRow("Change Name",      keyPath: \.name,
+                                value: user.name)
+                        editRow("Change Quote",     keyPath: \.quote,
+                                value: user.quote)
+                        editRow("Change Domain",    keyPath: \.domain,
+                                value: user.domain)
+                        editRow("Change LinkedIn",  keyPath: \.linkedIn,
+                                value: user.linkedIn)
+                        editRow("Change Instagram", keyPath: \.instagram,
+                                value: user.instagram)
                     }
                     .padding(.horizontal, YBSpace.md)
 
@@ -64,16 +53,6 @@ struct SettingsView: View {
                         .tint(YBColor.forest)
                         .padding(.horizontal, YBSpace.md)
 
-                    // Deactivate
-                    Button("Deactivate Account") { /* TODO: confirm + delete */ }
-                        .font(YBFont.caption)
-                        .foregroundColor(YBColor.heart)
-                        .padding(.horizontal, YBSpace.lg)
-                        .padding(.vertical, YBSpace.sm)
-                        .overlay(
-                            Capsule().stroke(YBColor.heart, lineWidth: 1)
-                        )
-
                     // Sign out
                     Button("Sign Out") {
                         auth.signOut()
@@ -82,11 +61,21 @@ struct SettingsView: View {
                     .font(YBFont.label)
                     .foregroundColor(YBColor.forest)
 
-                    // Save
+                    // Deactivate
+                    Button("Deactivate Account") { /* TODO */ }
+                        .font(YBFont.caption)
+                        .foregroundColor(.red)
+                        .padding(.horizontal, YBSpace.lg)
+                        .padding(.vertical, YBSpace.sm)
+                        .overlay(
+                            Capsule().stroke(.red, lineWidth: 1)
+                        )
+
+                    // Done
                     Button { dismiss() } label: {
-                        Text("Save")
+                        Text("Done")
                             .font(YBFont.label)
-                            .foregroundColor(YBColor.white)
+                            .foregroundColor(.white)
                             .padding(.horizontal, YBSpace.xl)
                             .padding(.vertical, YBSpace.sm)
                             .background(Capsule().fill(YBColor.forest))
@@ -100,14 +89,37 @@ struct SettingsView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
-                            .foregroundColor(YBColor.ink)
+                            .foregroundColor(.primary)
                     }
                 }
             }
         }
     }
+
+    /// Builds one navigation row that pushes the generic editor.
+    @ViewBuilder
+    private func editRow(_ title: String,
+                         keyPath: WritableKeyPath<User, String>,
+                         value: String) -> some View {
+        NavigationLink {
+            EditFieldView(title: title, keyPath: keyPath, initialValue: value)
+        } label: {
+            HStack {
+                Text(title)
+                    .font(YBFont.body)
+                    .foregroundColor(.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.secondary)
+            }
+            .padding(.vertical, YBSpace.md)
+            .contentShape(Rectangle())
+        }
+        Divider()
+    }
 }
 
 #Preview {
     SettingsView()
+        .environmentObject(AuthService())
 }

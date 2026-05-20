@@ -4,6 +4,8 @@ import SwiftUI
 /// No background — posts sit directly on the notebook-paper background.
 struct PostCardView: View {
     let post: Post
+    var isLiked: Bool = false
+    var onLike: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: YBSpace.sm) {
@@ -32,12 +34,15 @@ struct PostCardView: View {
 
             // Like count
             HStack(spacing: YBSpace.xs) {
-                Image(systemName: "heart.fill")
-                    .foregroundColor(YBColor.forest)
-                Text("\(post.likeCount)")
-                    .font(YBFont.caption)
-                    .foregroundColor(YBColor.ink)
-            }
+               Button(action: onLike) {
+                   Image(systemName: isLiked ? "heart.fill" : "heart")
+                       .foregroundColor(isLiked ? YBColor.heart : YBColor.forest)
+               }
+               .buttonStyle(.plain)
+               Text("\(post.likeCount)")
+                   .font(YBFont.caption)
+                   .foregroundColor(YBColor.ink)
+           }
 
             // Caption
             if !post.caption.isEmpty {

@@ -11,19 +11,23 @@ import Foundation
 // Hard-coded sample data so the app runs before any backend exists.
 enum MockData {
     static let posts: [Post] = [
-        Post(id: "p1",
-             authorName: "Tracie Trey",
-             imageName: "mock_post_1",
-             caption: "Demo day with the whole crew.",
-             date: makeDate(2026, 5, 29),
-             likeCount: 4),
-        Post(id: "p2",
-             authorName: "Tracie Trey",
-             imageName: "mock_post_2",
-             caption: "Late nights, good people.",
-             date: makeDate(2026, 6, 1),
-             likeCount: 7)
-    ]
+            Post(id: "p1",
+                 authorID: "u4",
+                 authorName: "Tracie Trey",
+                 imageName: "mock_post_1",
+                 caption: "Demo day with the whole crew.",
+                 date: makeDate(2026, 5, 29),
+                 likeCount: 4,
+                 likedBy: []),
+            Post(id: "p2",
+                 authorID: "u4",
+                 authorName: "Tracie Trey",
+                 imageName: "mock_post_2",
+                 caption: "Late nights, good people.",
+                 date: makeDate(2026, 6, 1),
+                 likeCount: 7,
+                 likedBy: [])
+        ]
     
     static let events: [Event] = [
             Event(id: "e1",
