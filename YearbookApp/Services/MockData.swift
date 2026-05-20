@@ -41,14 +41,30 @@ enum MockData {
         ]
     
     static let users: [User] = [
-            User(id: "u1", name: "Irmani Chears",   photoName: "member_irmani"),
-            User(id: "u2", name: "Jazmine Martin",  photoName: "member_jazmine"),
-            User(id: "u3", name: "Jahnell Roberson", photoName: "member_jahnell"),
-            User(id: "u4", name: "Tracie Webster",  photoName: "member_tracie",
+            User(id: "u1",
+                 name: "Irmani Chears",
+                 email: "irmani@msu.idserve.net",
+                 photoName: "member_irmani",
+                 cohort: "AM"),
+            User(id: "u2",
+                 name: "Jazmine Martin",
+                 email: "jazmine@msu.idserve.net",
+                 photoName: "member_jazmine",
+                 cohort: "AM"),
+            User(id: "u3",
+                 name: "Jahnell Roberson",
+                 email: "jahnell@msu.idserve.net",
+                 photoName: "member_jahnell",
+                 cohort: "AM"),
+            User(id: "u4",
+                 name: "Tracie Webster",
+                 email: "tracie@msu.idserve.net",
+                 photoName: "member_tracie",
                  quote: "If you are not living on the edge, you are taking up too much space.",
                  role: "Project Manager",
                  linkedIn: "tracie-webster",
-                 instagram: "@traciew")
+                 instagram: "@traciew",
+                 cohort: "AM")
         ]
 
         /// The signed-in user. Hard-coded for now; set on login later.

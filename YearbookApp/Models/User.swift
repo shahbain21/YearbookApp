@@ -8,13 +8,16 @@
 
 import Foundation
 
-/// A cohort member.
-struct User: Identifiable {
-    let id: String
+/// A cohort member. Stored in Firestore under the user's Firebase
+/// Auth uid as the document ID.
+struct User: Identifiable, Codable {
+    let id: String          // matches the Firebase Auth uid
     var name: String
-    var photoName: String?    // asset name now; a URL later
+    var email: String
+    var photoName: String?  // asset name or a Storage URL later
     var quote: String = ""
-    var role: String?         // e.g. "Project Manager" — nil for most
+    var role: String?
     var linkedIn: String?
     var instagram: String?
+    var cohort: String = "" // "AM", "PM", etc. — flagged earlier
 }
