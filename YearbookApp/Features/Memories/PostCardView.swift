@@ -1,11 +1,12 @@
 import SwiftUI
 
-/// A single post in the feed: author, image, like count, caption.
-/// No background — posts sit directly on the notebook-paper background.
 struct PostCardView: View {
     let post: Post
     var isLiked: Bool = false
     var onLike: () -> Void = {}
+
+    @State private var showComments = false
+    @StateObject private var commentsVM = CommentsViewModel()
 
     var body: some View {
         VStack(alignment: .leading, spacing: YBSpace.sm) {
@@ -32,17 +33,36 @@ struct PostCardView: View {
                 .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
-            // Like count
-            HStack(spacing: YBSpace.xs) {
-               Button(action: onLike) {
-                   Image(systemName: isLiked ? "heart.fill" : "heart")
-                       .foregroundColor(isLiked ? YBColor.heart : YBColor.forest)
-               }
-               .buttonStyle(.plain)
-               Text("\(post.likeCount)")
-                   .font(YBFont.caption)
-                   .foregroundColor(YBColor.ink)
-           }
+            // Like + comment row
+            HStack(spacing: YBSpace.md) {
+                // Like
+                HStack(spacing: YBSpace.xs) {
+                    Button(action: onLike) {
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .foregroundColor(isLiked ? YBColor.heart : YBColor.forest)
+                    }
+                    .buttonStyle(.plain)
+                    Text("\(post.likeCount)")
+                        .font(YBFont.caption)
+                        .foregroundColor(YBColor.ink)
+                }
+
+                // Comment
+                HStack(spacing: YBSpace.xs) {
+                    Button { showComments = true } label: {
+                        Image(systemName: "bubble.right")
+                            .foregroundColor(YBColor.forest)
+                    }
+                    .buttonStyle(.plain)
+                    if commentsVM.commentCount > 0 {
+                        Text("\(commentsVM.commentCount)")
+                            .font(YBFont.caption)
+                            .foregroundColor(YBColor.ink)
+                    }
+                }
+
+                Spacer()
+            }
 
             // Caption
             if !post.caption.isEmpty {
@@ -52,10 +72,15 @@ struct PostCardView: View {
             }
         }
         .padding(.vertical, YBSpace.sm)
+        .task { await commentsVM.loadCount(postID: post.id) }
+        .sheet(isPresented: $showComments) {
+            CommentsView(post: post)
+        }
     }
 }
 
 #Preview {
     PostCardView(post: MockData.posts[0])
+        .environmentObject(AuthService())
         .padding()
 }

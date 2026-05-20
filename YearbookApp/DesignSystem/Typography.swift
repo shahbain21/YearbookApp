@@ -13,6 +13,7 @@ enum YBFont {
     static let body    = Font.system(size: 20, weight: .regular) // body text
     static let label   = Font.system(size: 17, weight: .bold)    // labels
     static let caption = Font.system(size: 13, weight: .regular) // captions
+    static let metadata = Font.system(size: 12, weight: .regular)
 }
 
 // Consistent spacing scale.
