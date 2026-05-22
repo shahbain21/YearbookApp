@@ -8,7 +8,6 @@
 import SwiftUI
 import FirebaseCore
 
-/// Connects Firebase at launch.
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions:
@@ -22,26 +21,54 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct YearbookApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
-    /// One AuthService for the whole app, shared via the environment.
     @StateObject private var auth = AuthService()
-
     @State private var showSplash = true
+
+    /// Persisted to UserDefaults so the intro only shows on first launch.
+    @AppStorage("hasSeenIntro") private var hasSeenIntro: Bool = false
 
     var body: some Scene {
         WindowGroup {
             Group {
                 if showSplash {
                     SplashView(onFinished: { showSplash = false })
+                } else if !hasSeenIntro {
+                    IntroCarouselView(onFinished: { hasSeenIntro = true })
                 } else if auth.user == nil {
-                    SignInView()             // signed out
+                    SignInView()
+                } else if auth.currentUser == nil {
+                    loadingState
+                } else if auth.currentUser?.hasCompletedOnboarding == false {
+                    OnboardingView()
                 } else {
-                    RootTabView()            // signed in
+                    RootTabView()
                 }
             }
             .environmentObject(auth)
-            // Smooth fade between splash / sign-in / app.
             .animation(.easeInOut, value: showSplash)
+            .animation(.easeInOut, value: hasSeenIntro)
             .animation(.easeInOut, value: auth.user == nil)
+            .animation(.easeInOut, value: auth.currentUser?.hasCompletedOnboarding)
+        }
+    }
+
+    @ViewBuilder
+    private var loadingState: some View {
+        ZStack {
+            YBColor.forest.ignoresSafeArea()
+            VStack(spacing: YBSpace.md) {
+                ProgressView().tint(YBColor.white)
+                Text("Loading your profile…")
+                    .font(YBFont.caption)
+                    .foregroundColor(YBColor.white.opacity(0.8))
+                Button("Sign Out") { auth.signOut() }
+                    .padding(.top, YBSpace.lg)
+                    .foregroundColor(YBColor.white)
+            }
+        }
+        .task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            await auth.reloadCurrentUser()
         }
     }
 }
