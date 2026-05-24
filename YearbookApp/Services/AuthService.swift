@@ -3,30 +3,27 @@ import Combine
 import FirebaseAuth
 
 /// Handles authentication. Email/password via Firebase Auth, gated to
-/// academy email domains only. Also tracks the signed-in user's
-/// Firestore profile so the rest of the app can read it.
+/// academy email domains AND requiring email verification. Also tracks
+/// the signed-in user's Firestore profile so the rest of the app can
+/// read it.
 @MainActor
 final class AuthService: ObservableObject {
 
     // MARK: - Published state
 
-    /// The raw Firebase Auth user. Nil = signed out.
     @Published var user: FirebaseAuth.User?
-
-    /// The signed-in user's Firestore profile. Populated whenever
-    /// Firebase Auth state becomes signed-in; nil when signed out.
     @Published var currentUser: User?
-
-    /// Surfaces the most recent auth error to the UI.
     @Published var errorMessage: String?
+
+    /// Mirrors user?.isEmailVerified — published separately so views
+    /// can react when verification status changes (it doesn't change
+    /// the underlying auth user object, so we have to track it).
+    @Published var isEmailVerified: Bool = false
 
     // MARK: - Dependencies
 
     private var listenerHandle: AuthStateDidChangeListenerHandle?
     private let userService = UserService()
-
-    /// Email domains allowed to use the app. Add more here as cohorts
-    /// expand — it's an array on purpose.
     private let allowedDomains = ["msu.idserve.net"]
 
     // MARK: - Lifecycle
@@ -34,7 +31,7 @@ final class AuthService: ObservableObject {
     init() {
         listenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, firebaseUser in
             self?.user = firebaseUser
-            // Load (or clear) the Firestore profile to match.
+            self?.isEmailVerified = firebaseUser?.isEmailVerified ?? false
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 if let firebaseUser {
@@ -48,7 +45,6 @@ final class AuthService: ObservableObject {
 
     // MARK: - Domain gate
 
-    /// True if the email belongs to an allowed academy domain.
     private func isAllowed(email: String) -> Bool {
         guard let domain = email.lowercased().split(separator: "@").last else {
             return false
@@ -58,9 +54,8 @@ final class AuthService: ObservableObject {
 
     // MARK: - Sign up
 
-    /// Simple sign-up: Auth account + a minimal User document. Used by
-    /// the current SignInView. When the real onboarding flow is wired,
-    /// this can be removed and `register(...)` used instead.
+    /// Sign up + send verification email. User must verify before the
+    /// app lets them past the gate (handled in YearbookApp routing).
     func signUp(email: String, password: String) async {
         errorMessage = nil
         guard isAllowed(email: email) else {
@@ -70,18 +65,19 @@ final class AuthService: ObservableObject {
         do {
             let result = try await Auth.auth().createUser(
                 withEmail: email, password: password)
+
+            // Write minimal User document.
             let newUser = User(id: result.user.uid, name: "", email: email)
             try await userService.saveUser(newUser)
+
+            // Send the verification email.
+            try await result.user.sendEmailVerification()
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    /// Full registration: creates the Auth account AND writes the
-    /// matching User profile to Firestore. Designed for the onboarding
-    /// flow once the design team finishes it. `hasCompletedOnboarding`
-    /// stays false on the User; onboarding flips it via
-    /// `markOnboardingComplete()`.
+    /// Full registration with profile fields. Same verification flow.
     func register(email: String, password: String,
                   name: String, cohort: String) async {
         errorMessage = nil
@@ -99,6 +95,7 @@ final class AuthService: ObservableObject {
                 cohort: cohort
             )
             try await userService.saveUser(newUser)
+            try await result.user.sendEmailVerification()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -127,18 +124,39 @@ final class AuthService: ObservableObject {
         }
     }
 
+    // MARK: - Email verification
+
+    /// Re-send the verification email. The link Firebase sent originally
+    /// expires after a while; users on a slow inbox may need a fresh one.
+    func resendVerificationEmail() async {
+        errorMessage = nil
+        do {
+            try await user?.sendEmailVerification()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Refresh the user from Firebase to pick up a verification that
+    /// happened in the email client (we don't get a push when it does).
+    /// Called by the "I've verified" button on the gate screen.
+    func reloadVerificationStatus() async {
+        errorMessage = nil
+        do {
+            try await user?.reload()
+            isEmailVerified = user?.isEmailVerified ?? false
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     // MARK: - Profile management
 
-    /// Reloads the current user's profile from Firestore. Called by
-    /// Settings after a successful field edit so the UI reflects it.
     func reloadCurrentUser() async {
         guard let uid = user?.uid else { return }
         currentUser = try? await userService.fetchUser(id: uid)
     }
 
-    /// Called by the onboarding flow when the user finishes or skips.
-    /// Flips hasCompletedOnboarding to true so the app routes them
-    /// from onboarding into the main tabs, then refreshes currentUser.
     func markOnboardingComplete() async {
         guard let uid = user?.uid else { return }
         do {

@@ -32,14 +32,16 @@ struct YearbookApp: App {
             Group {
                 if showSplash {
                     SplashView(onFinished: { showSplash = false })
+                        .transition(.opacity)
                 } else if !hasSeenIntro {
                     IntroCarouselView(onFinished: { hasSeenIntro = true })
+                        .transition(.opacity)
                 } else if auth.user == nil {
                     SignInView()
+                } else if !auth.isEmailVerified {
+                    VerifyEmailView()
                 } else if auth.currentUser == nil {
                     loadingState
-                } else if auth.currentUser?.hasCompletedOnboarding == false {
-                    OnboardingView()
                 } else {
                     RootTabView()
                 }
@@ -49,6 +51,7 @@ struct YearbookApp: App {
             .animation(.easeInOut, value: hasSeenIntro)
             .animation(.easeInOut, value: auth.user == nil)
             .animation(.easeInOut, value: auth.currentUser?.hasCompletedOnboarding)
+            .animation(.easeInOut, value: auth.isEmailVerified)
         }
     }
 
