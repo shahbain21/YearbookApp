@@ -1,90 +1,108 @@
 import SwiftUI
 
-/// Settings — presented as a sheet from Profile. Uses semantic
-/// system colors so it adapts to light and dark mode like the
-/// native sheets it sits alongside.
+/// User settings sheet — edit profile fields, manage notifications,
+/// sign out, deactivate. Uses system semantic colors so the sheet
+/// renders correctly in light AND dark mode.
 struct SettingsView: View {
     @EnvironmentObject private var auth: AuthService
     @Environment(\.dismiss) private var dismiss
-    @State private var notificationsOn = true
 
-    /// The signed-in user, or a blank placeholder while loading.
-    private var user: User {
-        auth.currentUser ?? User(id: "", name: "", email: "")
-    }
-    
-    
+    private let userService = UserService()
+
+    @State private var notificationsOn = true
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: YBSpace.lg) {
+                if let user = auth.currentUser {
+                    VStack(spacing: YBSpace.lg) {
 
-                    // Photo + upload
-                    VStack(spacing: YBSpace.sm) {
-                        YBImage(source: user.photoName)
-                            .frame(width: 90, height: 90)
-                            .clipShape(Circle())
-                        Button("Upload Photo") { /* TODO: photo picker */ }
-                            .font(YBFont.caption)
-                            .foregroundColor(YBColor.forest)
-                        Text(user.name.isEmpty ? user.email : user.name)
-                            .font(YBFont.label)
-                            .foregroundColor(.primary)
-                    }
-                    .padding(.top, YBSpace.md)
+                        // Photo + name
+                        VStack(spacing: YBSpace.xs) {
+                            Circle()
+                                .fill(YBColor.icyAqua.opacity(0.5))
+                                .frame(width: 110, height: 110)
+                                .overlay(
+                                    Image(systemName: "photo")
+                                        .font(.title)
+                                        .foregroundColor(YBColor.forest)
+                                )
+                            // brandText so it's readable in both modes.
+                            Text("Upload Photo")
+                                .font(YBFont.caption)
+                                .foregroundColor(YBColor.brandText)
 
-                    // Change rows
-                    VStack(spacing: 0) {
-                        editRow("Change Name",      keyPath: \.name,
-                                value: user.name)
-                        dateRow("Change Birthday", keyPath: \.birthday,
-                                                       value: user.birthday)
-                        editRow("Change Quote",     keyPath: \.quote,
-                                value: user.quote)
-                        editRow("Change Domain",    keyPath: \.domain,
-                                value: user.domain)
-                        editRow("Change LinkedIn",  keyPath: \.linkedIn,
-                                value: user.linkedIn)
-                        editRow("Change Instagram", keyPath: \.instagram,
-                                value: user.instagram)
-                    }
-                    .padding(.horizontal, YBSpace.md)
+                            Text(user.name)
+                                .font(YBFont.label)
+                                .foregroundColor(.primary)
+                        }
+                        .padding(.top, YBSpace.lg)
 
-                    // Notifications toggle
-                    Toggle("Notifications", isOn: $notificationsOn)
-                        .font(YBFont.body)
-                        .tint(YBColor.forest)
+                        // Edit rows
+                        VStack(spacing: 0) {
+                            editRow("Change Name",      keyPath: \.name,
+                                    value: user.name)
+                            dateRow("Change Birthday",  keyPath: \.birthday,
+                                    value: user.birthday)
+                            editRow("Change Quote",     keyPath: \.quote,
+                                    value: user.quote)
+                            editRow("Change Domain",    keyPath: \.domain,
+                                    value: user.domain)
+                            editRow("Change LinkedIn",  keyPath: \.linkedIn,
+                                    value: user.linkedIn)
+                            editRow("Change Instagram", keyPath: \.instagram,
+                                    value: user.instagram)
+                        }
                         .padding(.horizontal, YBSpace.md)
 
-                    // Sign out
-                    Button("Sign Out") {
-                        auth.signOut()
-                        dismiss()
-                    }
-                    .font(YBFont.label)
-                    .foregroundColor(YBColor.forest)
+                        // Notifications toggle
+                        Toggle("Notifications", isOn: $notificationsOn)
+                            .tint(YBColor.forest)
+                            .padding(.horizontal, YBSpace.md)
+                            .padding(.top, YBSpace.md)
 
-                    // Deactivate
-                    Button("Deactivate Account") { /* TODO */ }
-                        .font(YBFont.caption)
-                        .foregroundColor(.red)
+                        // Sign out — brandText so it adapts.
+                        Button {
+                            auth.signOut()
+                            dismiss()
+                        } label: {
+                            Text("Sign Out")
+                                .font(YBFont.label)
+                                .foregroundColor(YBColor.brandText)
+                        }
+                        .padding(.top, YBSpace.lg)
+
+                        // Deactivate — destructive, stays red in both modes.
+                        Button {
+                            // TODO: deactivation flow
+                        } label: {
+                            Text("Deactivate Account")
+                                .font(YBFont.label)
+                                .foregroundColor(.red)
+                                .padding(.horizontal, YBSpace.lg)
+                                .padding(.vertical, YBSpace.sm)
+                                .overlay(
+                                    Capsule().stroke(Color.red, lineWidth: 1)
+                                )
+                        }
+
+                        // Done — brand button, stays forest in both modes.
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Done")
+                                .font(YBFont.label)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Capsule().fill(YBColor.forest))
+                        }
                         .padding(.horizontal, YBSpace.lg)
-                        .padding(.vertical, YBSpace.sm)
-                        .overlay(
-                            Capsule().stroke(.red, lineWidth: 1)
-                        )
-
-                    // Done
-                    Button { dismiss() } label: {
-                        Text("Done")
-                            .font(YBFont.label)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, YBSpace.xl)
-                            .padding(.vertical, YBSpace.sm)
-                            .background(Capsule().fill(YBColor.forest))
+                        .padding(.top, YBSpace.md)
+                        .padding(.bottom, YBSpace.xl)
                     }
-                    .padding(.bottom, YBSpace.xl)
+                } else {
+                    ProgressView().padding()
                 }
             }
             .navigationTitle("Settings")
@@ -92,19 +110,22 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { dismiss() } label: {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.primary)
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
         }
     }
 
-    /// Builds one navigation row that pushes the generic editor.
+    // MARK: - Row builders
+
+    /// Builds one navigation row that pushes a text editor.
     @ViewBuilder
     private func editRow(_ title: String,
-                         keyPath: WritableKeyPath<User, String>,
-                         value: String) -> some View {
+                        keyPath: WritableKeyPath<User, String>,
+                        value: String) -> some View {
         NavigationLink {
             EditFieldView(title: title, keyPath: keyPath, initialValue: value)
         } label: {
@@ -121,36 +142,35 @@ struct SettingsView: View {
         }
         Divider()
     }
-    
-    /// Builds one row that pushes the date editor.
-        @ViewBuilder
-        private func dateRow(_ title: String,
-                            keyPath: WritableKeyPath<User, Date?>,
-                            value: Date?) -> some View {
-            NavigationLink {
-                EditDateView(title: title, keyPath: keyPath, initialValue: value)
-            } label: {
-                HStack {
-                    Text(title)
-                        .font(YBFont.body)
-                        .foregroundColor(.primary)
-                    Spacer()
-                    if let value {
-                        Text(value.formatted(.dateTime.month().day().year()))
-                            .font(YBFont.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    Image(systemName: "chevron.right")
+
+    /// Builds one navigation row that pushes the date editor.
+    @ViewBuilder
+    private func dateRow(_ title: String,
+                        keyPath: WritableKeyPath<User, Date?>,
+                        value: Date?) -> some View {
+        NavigationLink {
+            EditDateView(title: title, keyPath: keyPath, initialValue: value)
+        } label: {
+            HStack {
+                Text(title)
+                    .font(YBFont.body)
+                    .foregroundColor(.primary)
+                Spacer()
+                if let value {
+                    Text(value.formatted(.dateTime.month().day().year()))
+                        .font(YBFont.caption)
                         .foregroundColor(.secondary)
                 }
-                .padding(.vertical, YBSpace.md)
-                .contentShape(Rectangle())
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.secondary)
             }
-            Divider()
+            .padding(.vertical, YBSpace.md)
+            .contentShape(Rectangle())
         }
+        Divider()
+    }
 }
 
 #Preview {
-    SettingsView()
-        .environmentObject(AuthService())
+    SettingsView().environmentObject(AuthService())
 }

@@ -11,6 +11,7 @@
 		819F6DF22FBC9B30002D89BC /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 819F6DF12FBC9B30002D89BC /* FirebaseFirestore */; };
 		819F6DFC2FBCA0E7002D89BC /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 819F6DFB2FBCA0E7002D89BC /* GoogleSignIn */; };
 		819F6DFE2FBCA0E7002D89BC /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 819F6DFD2FBCA0E7002D89BC /* GoogleSignInSwift */; };
+		819F6E312FC29676002D89BC /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = 819F6E302FC29676002D89BC /* Cloudinary */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,7 @@
 			files = (
 				819F6DF02FBC9B30002D89BC /* FirebaseAuth in Frameworks */,
 				819F6DF22FBC9B30002D89BC /* FirebaseFirestore in Frameworks */,
+				819F6E312FC29676002D89BC /* Cloudinary in Frameworks */,
 				819F6DFC2FBCA0E7002D89BC /* GoogleSignIn in Frameworks */,
 				819F6DFE2FBCA0E7002D89BC /* GoogleSignInSwift in Frameworks */,
 			);
@@ -93,6 +95,7 @@
 				819F6DF12FBC9B30002D89BC /* FirebaseFirestore */,
 				819F6DFB2FBCA0E7002D89BC /* GoogleSignIn */,
 				819F6DFD2FBCA0E7002D89BC /* GoogleSignInSwift */,
+				819F6E302FC29676002D89BC /* Cloudinary */,
 			);
 			productName = YearbookApp;
 			productReference = 819F6DA02FBA7136002D89BC /* YearbookApp.app */;
@@ -125,6 +128,7 @@
 			packageReferences = (
 				819F6DEE2FBC9B30002D89BC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				819F6DFA2FBCA0E7002D89BC /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				819F6E2F2FC29676002D89BC /* XCRemoteSwiftPackageReference "cloudinary_ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 819F6DA12FBA7136002D89BC /* Products */;
@@ -290,6 +294,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = YearbookApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MainMemories;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "MainMemories needs permission to save photos to your library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -324,6 +329,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = YearbookApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MainMemories;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "MainMemories needs permission to save photos to your library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -386,6 +392,14 @@
 				minimumVersion = 9.1.0;
 			};
 		};
+		819F6E2F2FC29676002D89BC /* XCRemoteSwiftPackageReference "cloudinary_ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cloudinary/cloudinary_ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.2.5;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -408,6 +422,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 819F6DFA2FBCA0E7002D89BC /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		819F6E302FC29676002D89BC /* Cloudinary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 819F6E2F2FC29676002D89BC /* XCRemoteSwiftPackageReference "cloudinary_ios" */;
+			productName = Cloudinary;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

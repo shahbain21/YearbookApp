@@ -31,6 +31,34 @@ final class MemoriesViewModel: ObservableObject {
         }
         isLoading = false
     }
+    
+    /// Delete a post optimistically — remove from feed immediately,
+        /// reload from Firestore if the actual delete fails.
+        func deletePost(_ post: Post) async {
+            let original = posts
+            posts.removeAll { $0.id == post.id }
+            do {
+                try await postService.deletePost(postID: post.id)
+            } catch {
+                posts = original
+                errorMessage = "Couldn't delete post."
+            }
+        }
+
+        /// Update a post's caption locally and remotely.
+        func updateCaption(of post: Post, to newCaption: String) async {
+            guard let index = posts.firstIndex(where: { $0.id == post.id }) else { return }
+            let trimmed = newCaption.trimmingCharacters(in: .whitespacesAndNewlines)
+            let original = posts[index]
+
+            posts[index].caption = trimmed     // optimistic
+            do {
+                try await postService.updateCaption(postID: post.id, caption: trimmed)
+            } catch {
+                posts[index] = original
+                errorMessage = "Couldn't update caption."
+            }
+        }
 
     /// Optimistic like: update the UI immediately, then confirm with
     /// the service. If the call fails, revert.

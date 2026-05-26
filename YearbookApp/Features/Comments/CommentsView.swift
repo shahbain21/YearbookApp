@@ -1,15 +1,9 @@
-//
-//  CommentsView.swift
-//  YearbookApp
-//
-//  Created by Mohamed Shahbain on 5/20/26.
-//
-
-
 import SwiftUI
 import FirebaseAuth
 
-/// Sheet of comments for one post. Slides up from a post card.
+/// Sheet of comments for one post. Soft off-white background so the
+/// composer's airplane icon and brand-tinted text stay readable in
+/// both system modes.
 struct CommentsView: View {
     let post: Post
 
@@ -17,6 +11,7 @@ struct CommentsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = CommentsViewModel()
     @State private var newComment = ""
+    @State private var commentToDelete: Comment?
 
     var body: some View {
         NavigationStack {
@@ -24,14 +19,40 @@ struct CommentsView: View {
                 commentList
                 composer
             }
+            .background(YBColor.sheetBackground)
             .navigationTitle("Comments")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(YBColor.sheetBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { dismiss() } label: {
-                        Image(systemName: "xmark").foregroundColor(.primary)
+                        Image(systemName: "xmark")
+                            .foregroundColor(YBColor.ink)
                     }
                 }
+            }
+            .alert(
+                "Delete this comment?",
+                isPresented: Binding(
+                    get: { commentToDelete != nil },
+                    set: { if !$0 { commentToDelete = nil } }
+                )
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let comment = commentToDelete {
+                        Task {
+                            await viewModel.delete(
+                                comment: comment,
+                                currentUserID: auth.user?.uid ?? "",
+                                postAuthorID: post.authorID)
+                        }
+                    }
+                    commentToDelete = nil
+                }
+                Button("Cancel", role: .cancel) { commentToDelete = nil }
+            } message: {
+                Text("This can't be undone.")
             }
         }
         .task { await viewModel.loadComments(postID: post.id) }
@@ -49,7 +70,7 @@ struct CommentsView: View {
             Spacer()
             Text("Be the first to comment.")
                 .font(YBFont.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(YBColor.inkSoft)
             Spacer()
         } else {
             ScrollView {
@@ -72,31 +93,34 @@ struct CommentsView: View {
             postAuthorID: post.authorID
         )
 
-        return VStack(alignment: .leading, spacing: YBSpace.xs) {
-            HStack {
-                Text(comment.authorName)
-                    .font(YBFont.label)
-                    .foregroundColor(.primary)
-                Text(comment.createdAt.formatted(.relative(presentation: .named)))
-                    .font(YBFont.metadata)
-                    .foregroundColor(.secondary)
-                Spacer()
+        return HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: YBSpace.xs) {
+                HStack {
+                    Text(comment.authorName)
+                        .font(YBFont.label)
+                        .foregroundColor(YBColor.ink)
+                    Text(comment.createdAt.formatted(.relative(presentation: .named)))
+                        .font(YBFont.metadata)
+                        .foregroundColor(YBColor.inkSoft)
+                    Spacer()
+                }
+                Text(comment.text)
+                    .font(YBFont.body)
+                    .foregroundColor(YBColor.ink)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Text(comment.text)
-                .font(YBFont.body)
-                .foregroundColor(.primary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .swipeActions(edge: .trailing) {
+            Spacer()
+
             if canDelete {
-                Button(role: .destructive) {
-                    Task {
-                        await viewModel.delete(
-                            comment: comment,
-                            currentUserID: currentUID,
-                            postAuthorID: post.authorID)
+                Menu {
+                    Button("Delete", role: .destructive) {
+                        commentToDelete = comment
                     }
-                } label: { Label("Delete", systemImage: "trash") }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .foregroundColor(YBColor.inkSoft)
+                        .padding(YBSpace.sm)
+                }
             }
         }
     }
@@ -108,8 +132,11 @@ struct CommentsView: View {
             TextField("Add a comment…", text: $newComment, axis: .vertical)
                 .lineLimit(1...4)
                 .padding(YBSpace.sm)
+                .foregroundColor(YBColor.ink)
+                .tint(YBColor.ink)
                 .background(YBColor.icyAqua.opacity(0.3))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
+                .environment(\.colorScheme, .light)
 
             Button {
                 Task {
@@ -130,7 +157,7 @@ struct CommentsView: View {
             .disabled(newComment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding()
-        .background(.ultraThinMaterial)
+        .background(YBColor.sheetBackground)
     }
 }
 

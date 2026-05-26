@@ -42,6 +42,28 @@ final class PostService {
         )
         try docRef.setData(from: post)
     }
+    
+    /// Update just the caption of a post.
+        func updateCaption(postID: String, caption: String) async throws {
+            try await postsCollection.document(postID).updateData([
+                "caption": caption
+            ])
+        }
+
+        /// Delete a post and all its comments. Firestore doesn't cascade
+        /// subcollection deletes, so we delete the comments first.
+        func deletePost(postID: String) async throws {
+            // 1. Delete every comment in the subcollection.
+            let comments = try await postsCollection
+                .document(postID)
+                .collection("comments")
+                .getDocuments()
+            for doc in comments.documents {
+                try await doc.reference.delete()
+            }
+            // 2. Delete the post itself.
+            try await postsCollection.document(postID).delete()
+        }
 
     /// Toggle a like. Uses a Firestore transaction so the count and
     /// the likedBy array stay consistent even with concurrent edits.
