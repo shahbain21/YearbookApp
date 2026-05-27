@@ -1,23 +1,17 @@
 import SwiftUI
 
-/// A single post in the feed. Uses a native SwiftUI Menu for the
-/// edit/delete actions. The Menu's popover is system-controlled and
-/// stays dark in dark mode, so the icons inside use brandText to
-/// remain readable. The Edit Caption sheet uses the sheetBackground
-/// pattern like all our other sheets.
+/// A single post card in the feed. Simplified — no menu, no sheets,
+/// no per-card state for actions. Tap target is the whole card
+/// (handled by the parent's NavigationLink). The action row buttons
+/// (like, comment, save) live here as proper Buttons.
 struct PostCardView: View {
     let post: Post
     var isLiked: Bool = false
     var onLike: () -> Void = {}
 
-    var isAuthor: Bool = false
-    var onEdit: () -> Void = {}
-    var onDelete: () -> Void = {}
-
     @State private var showComments = false
     @State private var saveToast: String?
     @State private var savedFlash = false
-    @StateObject private var commentsVM = CommentsViewModel()
 
     var body: some View {
         VStack(alignment: .leading, spacing: YBSpace.sm) {
@@ -31,7 +25,6 @@ struct PostCardView: View {
             }
         }
         .padding(.vertical, YBSpace.sm)
-        .task { await commentsVM.loadCount(postID: post.id) }
         .sheet(isPresented: $showComments) {
             CommentsView(post: post)
         }
@@ -65,26 +58,7 @@ struct PostCardView: View {
                     .foregroundColor(YBColor.inkSoft)
             }
             Spacer()
-            if isAuthor {
-                authorMenu
-            }
         }
-    }
-
-    /// Native Menu — the system controls its popover background (dark
-    /// in dark mode). Edit's pencil uses brandText so it stays visible
-    /// against the dark popup; trash gets its destructive red tint.
-    private var authorMenu: some View {
-            Menu {
-                Button("Edit caption") { onEdit() }
-                Button("Delete post", role: .destructive) { onDelete() }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.title3)
-                    .foregroundColor(YBColor.ink)
-                    .padding(YBSpace.md)
-                    .contentShape(Rectangle())
-            }
     }
 
     // MARK: - Image
@@ -98,32 +72,27 @@ struct PostCardView: View {
     }
 
     // MARK: - Action row (like / comment / save)
+    // .buttonStyle(.borderless) on each so they don't trigger the
+    // parent NavigationLink when tapped — a known SwiftUI pattern.
 
     private var actionRow: some View {
         HStack(spacing: YBSpace.md) {
-            HStack(spacing: YBSpace.xs) {
-                Button(action: onLike) {
+            Button(action: onLike) {
+                HStack(spacing: YBSpace.xs) {
                     Image(systemName: isLiked ? "heart.fill" : "heart")
                         .foregroundColor(isLiked ? YBColor.heart : YBColor.forest)
-                }
-                .buttonStyle(.plain)
-                Text("\(post.likeCount)")
-                    .font(YBFont.caption)
-                    .foregroundColor(YBColor.ink)
-            }
-
-            HStack(spacing: YBSpace.xs) {
-                Button { showComments = true } label: {
-                    Image(systemName: "bubble.right")
-                        .foregroundColor(YBColor.forest)
-                }
-                .buttonStyle(.plain)
-                if commentsVM.commentCount > 0 {
-                    Text("\(commentsVM.commentCount)")
+                    Text("\(post.likeCount)")
                         .font(YBFont.caption)
                         .foregroundColor(YBColor.ink)
                 }
             }
+            .buttonStyle(.borderless)
+
+            Button { showComments = true } label: {
+                Image(systemName: "bubble.right")
+                    .foregroundColor(YBColor.forest)
+            }
+            .buttonStyle(.borderless)
 
             Button { Task { await saveImage() } } label: {
                 Image(systemName: savedFlash ? "checkmark.circle.fill" : "square.and.arrow.down")
@@ -131,7 +100,7 @@ struct PostCardView: View {
                     .scaleEffect(savedFlash ? 1.3 : 1.0)
                     .animation(.spring(response: 0.3, dampingFraction: 0.5), value: savedFlash)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
 
             Spacer()
         }
@@ -156,58 +125,6 @@ struct PostCardView: View {
         Task {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             withAnimation { saveToast = nil }
-        }
-    }
-}
-
-// MARK: - Edit caption sheet
-
-/// Sheet for editing a post's caption. File-scope (not private) so
-/// MemoriesView can present it. Soft off-white background like all
-/// other sheets so it reads in both system modes.
-struct EditCaptionSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var caption: String
-
-    let onSave: (String) -> Void
-
-    init(initialCaption: String, onSave: @escaping (String) -> Void) {
-        _caption = State(initialValue: initialCaption)
-        self.onSave = onSave
-    }
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("Caption") {
-                    TextField("Write a caption…", text: $caption, axis: .vertical)
-                        .lineLimit(3...8)
-                        .foregroundColor(YBColor.ink)
-                        .tint(YBColor.ink)
-                }
-                .listRowBackground(YBColor.paper)
-            }
-            .scrollContentBackground(.hidden)
-            .background(YBColor.sheetBackground)
-            .environment(\.colorScheme, .light)
-            .navigationTitle("Edit Caption")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(YBColor.sheetBackground, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") { dismiss() }
-                        .foregroundColor(YBColor.forest)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
-                        onSave(caption)
-                        dismiss()
-                    }
-                    .fontWeight(.bold)
-                    .foregroundColor(YBColor.forest)
-                }
-            }
         }
     }
 }
